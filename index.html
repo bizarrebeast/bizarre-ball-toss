@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bizarre Ball Toss</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Joti+One&family=Press+Start+2P&family=Slackey&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@farcade/game-sdk@0.3.0/dist/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      canvas {
+        outline: none;
+        margin: 0;
+      }
+
+      .joti-one-regular {
+        font-family: "Joti One", serif;
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      /* Font preload trick - hidden elements force browser to download fonts */
+      .font-preload {
+        position: absolute;
+        left: -9999px;
+        visibility: hidden;
+      }
+      .font-preload-slackey { font-family: "Slackey", cursive; }
+      .font-preload-joti { font-family: "Joti One", serif; }
+      .font-preload-inter { font-family: "Inter", sans-serif; }
+    </style>
+  </head>
+  <body>
+    <!-- Hidden font preload elements -->
+    <div class="font-preload font-preload-slackey">.</div>
+    <div class="font-preload font-preload-joti">.</div>
+    <div class="font-preload font-preload-inter">.</div>
+    <script type="module">
+      // Development only - build script replaces this entire block
+      if (import.meta.env.DEV) {
+        // Load dev styles
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/.remix/main.css';
+        document.head.appendChild(link);
+
+        if (window === window.top) {
+          // Top-level window - show React dashboard (new implementation)
+          import('./.remix/index.tsx');
+        } else {
+          // Iframe - show game with SDK mock
+          import('/src/main.ts');
+        }
+      }
+    </script>
+  </body>
+</html>

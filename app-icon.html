@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banner Generator - Louie's Food Fling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Slackey&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #1a1a2a;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #00D4FF;
+      margin-bottom: 10px;
+      font-family: 'Slackey', cursive;
+    }
+    p {
+      color: #888;
+      margin-bottom: 30px;
+    }
+    canvas {
+      border: 4px solid #FF10F0;
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(255, 16, 240, 0.3);
+      max-width: 100%;
+    }
+    .buttons {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+    }
+    button {
+      padding: 15px 40px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    .download-btn {
+      background: linear-gradient(90deg, #FF10F0, #00D4FF);
+      color: #0a0a0a;
+    }
+    .regenerate-btn {
+      background: #39FF14;
+      color: #0a0a0a;
+    }
+  </style>
+</head>
+<body>
+  <h1>Banner Generator</h1>
+  <p>1200x630 banner for Louie's Food Fling</p>
+  <canvas id="iconCanvas" width="1200" height="630"></canvas>
+  <div class="buttons">
+    <button class="download-btn" onclick="downloadBanner()">Download PNG</button>
+    <button class="regenerate-btn" onclick="generateBanner()">Regenerate</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('iconCanvas');
+    const ctx = canvas.getContext('2d');
+    const WIDTH = 1200;
+    const HEIGHT = 630;
+
+    // Colors
+    const COLORS = {
+      pink: '#FF10F0',
+      blue: '#00D4FF',
+      yellow: '#FFDD00',
+      green: '#39FF14',
+      purple: '#9933FF'
+    };
+
+    // Load images
+    const images = {};
+    const imageUrls = {
+      'louie': 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/Louie%20idle%20yellow-6xFdYDO0R1UqeLl7ZI8r78aFXciYfZ.png',
+      'burger': 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/Burger-gNRc6fOp2Cu5gg163B7676PtJNjmAg.png',
+      'pizza': 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/Pizza-3qMro3YY7WOPxjkyXDuYbv51RzO0HB.png',
+      'taco': 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/taco-6vu6lQI3D05z2lVxkDNwY66TlFmGZB.png',
+      'egg': 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/Egg-GMmq1vGhHyrudgdi1xUR0mye91qDcC.png'
+    };
+
+    let imagesLoaded = 0;
+    const totalImages = Object.keys(imageUrls).length;
+
+    // Load all images
+    for (const [key, url] of Object.entries(imageUrls)) {
+      images[key] = new Image();
+      images[key].crossOrigin = 'anonymous';
+      images[key].onload = () => {
+        imagesLoaded++;
+        if (imagesLoaded === totalImages) {
+          generateBanner();
+        }
+      };
+      images[key].src = url;
+    }
+
+    function generateBanner() {
+      // Clear canvas
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+      // Background gradient (purple/magenta sky)
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+      bgGradient.addColorStop(0, '#1a0a2e');
+      bgGradient.addColorStop(0.3, '#2d1b4e');
+      bgGradient.addColorStop(0.5, '#4a1942');
+      bgGradient.addColorStop(0.7, '#6b2d5c');
+      bgGradient.addColorStop(0.85, '#3d1a4a');
+      bgGradient.addColorStop(1, '#1a1a3a');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      // Draw pixelated clouds (spread across wide banner)
+      drawPixelCloud(100, 50, 80, COLORS.pink, 0.45, 0);
+      drawPixelCloud(350, 40, 70, COLORS.purple, 0.4, 2);
+      drawPixelCloud(650, 60, 65, COLORS.blue, 0.4, 1);
+      drawPixelCloud(900, 45, 75, '#33FFFF', 0.38, 0);
+      drawPixelCloud(1100, 70, 55, '#FF33AA', 0.4, 3);
+      drawPixelCloud(220, 110, 50, COLORS.blue, 0.35, 3);
+      drawPixelCloud(780, 100, 55, COLORS.pink, 0.35, 3);
+      drawPixelCloud(1050, 120, 45, COLORS.purple, 0.32, 1);
+
+      // Draw terrain at bottom
+      drawTerrain();
+
+      // Draw Louie on the left
+      const louieSize = 280;
+      ctx.drawImage(images.louie, 100, HEIGHT - louieSize - 70, louieSize, louieSize);
+
+      // Draw food items scattered around
+      const foodPositions = [
+        { img: 'burger', x: 60, y: 150, size: 75, rotation: -12 },
+        { img: 'pizza', x: 320, y: 220, size: 70, rotation: 15 },
+        { img: 'taco', x: 980, y: 180, size: 80, rotation: -8 },
+        { img: 'egg', x: 1100, y: 260, size: 65, rotation: 10 },
+        { img: 'burger', x: 900, y: 120, size: 60, rotation: 20 },
+        { img: 'pizza', x: 1140, y: 150, size: 55, rotation: -15 },
+        { img: 'taco', x: 80, y: 280, size: 55, rotation: 8 },
+      ];
+
+      foodPositions.forEach(food => {
+        ctx.save();
+        ctx.translate(food.x, food.y);
+        ctx.rotate(food.rotation * Math.PI / 180);
+        ctx.drawImage(images[food.img], -food.size/2, -food.size/2, food.size, food.size);
+        ctx.restore();
+      });
+
+      // Draw title "LOUIE'S FOOD FLING" centered-right
+      const titleX = 680;
+
+      ctx.font = 'bold 86px "Slackey", cursive';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // "LOUIE'S" text
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 12;
+      ctx.strokeText("LOUIE'S", titleX, 220);
+      ctx.fillStyle = COLORS.yellow;
+      ctx.fillText("LOUIE'S", titleX, 220);
+
+      // "FOOD FLING" text
+      ctx.font = 'bold 76px "Slackey", cursive';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 10;
+      ctx.strokeText("FOOD FLING", titleX, 330);
+      ctx.fillStyle = COLORS.yellow;
+      ctx.fillText("FOOD FLING", titleX, 330);
+    }
+
+    function drawPixelCloud(x, y, size, color, alpha, cloudType = 0) {
+      const pixelSize = Math.max(5, size / 12);
+
+      const cloudTypes = [
+        // Type 0: Wide fluffy cloud
+        [
+          [0,0,0,1,1,1,1,0,0,0,0,1,1,1,0,0],
+          [0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,0],
+          [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+          [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        ],
+        // Type 1: Tall puffy cloud
+        [
+          [0,0,0,1,1,1,0,0,0],
+          [0,0,1,1,1,1,1,0,0],
+          [0,1,1,1,1,1,1,1,0],
+          [0,1,1,1,1,1,1,1,0],
+          [1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1],
+          [0,1,1,1,1,1,1,1,0],
+        ],
+        // Type 2: Long stretched cloud
+        [
+          [0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0],
+          [0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+        ],
+        // Type 3: Compact fluffy
+        [
+          [0,0,1,1,1,0,0],
+          [0,1,1,1,1,1,0],
+          [1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1],
+          [0,1,1,1,1,1,0],
+        ],
+      ];
+
+      const pattern = cloudTypes[cloudType % cloudTypes.length];
+      const scale = size / 100;
+
+      // Glow layer
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha * 0.3;
+      pattern.forEach((row, py) => {
+        row.forEach((pixel, px) => {
+          if (pixel) {
+            ctx.fillRect(
+              x + px * pixelSize * scale - (row.length * pixelSize * scale) / 2 - pixelSize * 0.3,
+              y + py * pixelSize * scale - (pattern.length * pixelSize * scale) / 2 - pixelSize * 0.3,
+              pixelSize * scale + pixelSize * 0.6,
+              pixelSize * scale + pixelSize * 0.6
+            );
+          }
+        });
+      });
+
+      // Main cloud pixels
+      ctx.globalAlpha = alpha;
+      pattern.forEach((row, py) => {
+        row.forEach((pixel, px) => {
+          if (pixel) {
+            ctx.fillRect(
+              x + px * pixelSize * scale - (row.length * pixelSize * scale) / 2,
+              y + py * pixelSize * scale - (pattern.length * pixelSize * scale) / 2,
+              pixelSize * scale - 1,
+              pixelSize * scale - 1
+            );
+          }
+        });
+      });
+
+      ctx.globalAlpha = 1;
+    }
+
+    function drawTerrain() {
+      const groundY = 530;
+
+      // Ground fill
+      ctx.fillStyle = '#0a1a0a';
+      ctx.beginPath();
+      ctx.moveTo(0, HEIGHT);
+      for (let x = 0; x <= WIDTH; x += 10) {
+        const y = groundY - Math.sin(x * 0.008) * 25 - Math.sin(x * 0.015) * 15;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(WIDTH, HEIGHT);
+      ctx.closePath();
+      ctx.fill();
+
+      // Neon glow line
+      ctx.strokeStyle = COLORS.green;
+      ctx.lineWidth = 6;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY - Math.sin(0) * 25);
+      for (let x = 0; x <= WIDTH; x += 10) {
+        const y = groundY - Math.sin(x * 0.008) * 25 - Math.sin(x * 0.015) * 15;
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Main terrain line
+      ctx.strokeStyle = COLORS.green;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY - Math.sin(0) * 25);
+      for (let x = 0; x <= WIDTH; x += 10) {
+        const y = groundY - Math.sin(x * 0.008) * 25 - Math.sin(x * 0.015) * 15;
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function downloadBanner() {
+      const link = document.createElement('a');
+      link.download = 'louies-food-fling-banner-1200x630.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Initial loading message
+    ctx.fillStyle = '#888';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loading images...', WIDTH/2, HEIGHT/2);
+  </script>
+</body>
+</html>
