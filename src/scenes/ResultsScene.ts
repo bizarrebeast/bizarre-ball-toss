@@ -405,16 +405,27 @@ export class ResultsScene extends Phaser.Scene {
     })
 
     hitArea.on('pointerup', () => {
+      console.log('[ResultsScene] Continue button clicked')
       this.callGameOver()
     })
   }
 
   private callGameOver() {
+    console.log('[ResultsScene] callGameOver - score:', this.results.score)
+
     if ((window as any).FarcadeSDK?.singlePlayer?.actions?.gameOver) {
       (window as any).FarcadeSDK.singlePlayer.actions.gameOver({
         score: this.results.score
       })
+      console.log('[ResultsScene] SDK gameOver called')
+
+      // Fallback: if SDK doesn't respond in 2s, go to StartScene
+      this.time.delayedCall(2000, () => {
+        console.log('[ResultsScene] SDK timeout, falling back to StartScene')
+        this.scene.start('StartScene')
+      })
     } else {
+      console.log('[ResultsScene] SDK not available, going to StartScene')
       this.scene.start('StartScene')
     }
   }

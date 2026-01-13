@@ -69,7 +69,8 @@ export class GameScene extends Phaser.Scene {
   private terrainGraphics!: Phaser.GameObjects.Graphics
   private backgroundGraphics!: Phaser.GameObjects.Graphics
   private lastTerrainX: number = 0
-  private distanceMarkers: Set<number> = new Set()
+  private lastCleanupX: number = 0
+  private distanceMarkers: Map<number, Phaser.GameObjects.Text> = new Map()
 
   // Collectibles
   private collectibles: Collectible[] = []
@@ -133,7 +134,9 @@ export class GameScene extends Phaser.Scene {
     this.isDiving = false
     this.diveBoostTime = 0
     this.slowTime = 0
-    this.distanceMarkers = new Set()
+    this.distanceMarkers = new Map()
+    this.lastCleanupX = 0
+    this.lastDebugDistance = 0
   }
 
   preload() {
@@ -180,7 +183,7 @@ export class GameScene extends Phaser.Scene {
     this.createAimingUI()
     this.setupInput()
 
-    this.cameras.main.setBounds(-1000, -8000, 100000, 15000)
+    this.cameras.main.setBounds(-1000, -8000, 10000000, 15000)  // 10 million to support very long runs
 
     // Create fixed UI camera that doesn't scroll or zoom
     this.uiCamera = this.cameras.add(0, 0, width, height)
@@ -279,7 +282,7 @@ export class GameScene extends Phaser.Scene {
         marker.setAlpha(0.4)
         // UI camera ignores game world markers
         if (this.uiCamera) this.uiCamera.ignore(marker)
-        this.distanceMarkers.add(d)
+        this.distanceMarkers.set(d, marker)
       }
     }
 
@@ -292,7 +295,7 @@ export class GameScene extends Phaser.Scene {
     this.backgroundGraphics = this.add.graphics()
 
     this.backgroundGraphics.fillStyle(0x050510, 1)
-    this.backgroundGraphics.fillRect(-2000, -8000, 100000, 18000)
+    this.backgroundGraphics.fillRect(-2000, -8000, 10000000, 18000)
 
     const gradientColors = [
       { color: 0x1a0a2e, y: -8000 },
@@ -317,7 +320,33 @@ export class GameScene extends Phaser.Scene {
         const g = Math.floor(((from.color >> 8) & 0xff) + ((((to.color >> 8) & 0xff) - ((from.color >> 8) & 0xff)) * t))
         const b = Math.floor((from.color & 0xff) + (((to.color & 0xff) - (from.color & 0xff)) * t))
         this.backgroundGraphics.fillStyle((r << 16) | (g << 8) | b, 1)
-        this.backgroundGraphics.fillRect(-2000, from.y + s * stepHeight, 100000, stepHeight + 2)
+        this.backgroundGraphics.fillRect(-2000, from.y + s * stepHeight, 10000000, stepHeight + 2)
+      }
+    }
+
+    // Add stars in the upper sky (above clouds)
+    this.createBackgroundStars()
+  }
+
+  private createBackgroundStars() {
+    const starColors = [0xFFFFFF, 0xFFFFDD, 0xDDDDFF, 0xFFDDFF, 0xDDFFFF]
+
+    // Scatter stars in upper atmosphere (-8000 to -5000)
+    for (let i = 0; i < 500; i++) {
+      // Use a simple pseudo-random based on index for consistent placement
+      const x = (i * 7919) % 100000  // Spread across 100k, will repeat
+      const y = -8000 + (i * 3571) % 3000  // -8000 to -5000
+      const size = 1 + (i % 3)  // 1-3 pixel stars
+      const color = starColors[i % starColors.length]
+      const alpha = 0.3 + (i % 5) * 0.15  // 0.3 to 0.9
+
+      this.backgroundGraphics.fillStyle(color, alpha)
+      this.backgroundGraphics.fillCircle(x, y, size)
+
+      // Add a subtle glow to some stars
+      if (i % 4 === 0) {
+        this.backgroundGraphics.fillStyle(color, alpha * 0.3)
+        this.backgroundGraphics.fillCircle(x, y, size + 2)
       }
     }
   }
@@ -997,10 +1026,16 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkCollectibleCollisions() {
+    const ballX = this.ball.x
+    const checkRadius = 500  // Only check items within 500px horizontally
+
     for (const item of this.collectibles) {
       if (item.collected) continue
 
-      const dx = this.ball.x - item.x
+      // Skip items too far away horizontally (optimization)
+      if (Math.abs(item.x - ballX) > checkRadius) continue
+
+      const dx = ballX - item.x
       const dy = this.ball.y - item.y
       const dist = Math.sqrt(dx * dx + dy * dy)
 
@@ -1088,11 +1123,19 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
+  private lastDebugDistance: number = 0  // For debug logging
+
   private updateStats() {
     const distance = Math.max(0, this.ball.x - this.ballStartX)
     this.maxDistance = Math.max(this.maxDistance, distance)
     const currentHeight = this.getGroundY(this.ball.x) - this.ball.y
     this.maxHeight = Math.max(this.maxHeight, currentHeight)
+
+    // Debug logging every 10k meters
+    if (Math.floor(distance / 10000) > Math.floor(this.lastDebugDistance / 10000)) {
+      console.log(`[DEBUG ${Math.floor(distance)}m] ball.x=${this.ball.x.toFixed(0)}, camera.scrollX=${this.cameras.main.scrollX.toFixed(0)}, collectibles=${this.collectibles.length}, markers=${this.distanceMarkers.size}`)
+      this.lastDebugDistance = distance
+    }
 
     this.distanceText.setText(`${Math.floor(this.maxDistance)}m`)
     this.starsText.setText(`Burgers: ${this.starsCollected}`)
@@ -1186,9 +1229,12 @@ export class GameScene extends Phaser.Scene {
   private updateClouds() {
     const cameraX = this.cameras.main.scrollX
     const cameraY = this.cameras.main.scrollY
+    const wrapWidth = 50000  // Match the initial cloud spawn width
 
     for (const cloud of this.clouds) {
-      cloud.graphics.x = -cameraX * cloud.speed * 0.3
+      // Wrap parallax offset so clouds cycle every 50k units of camera travel
+      const parallaxX = (cameraX % wrapWidth) * cloud.speed * 0.3
+      cloud.graphics.x = -parallaxX
       cloud.graphics.y = -cameraY * cloud.speed * 0.2
     }
   }
@@ -1207,6 +1253,36 @@ export class GameScene extends Phaser.Scene {
     // Spawn more collectibles
     if (this.ball.x > this.lastSpawnX - 2000) {
       this.spawnCollectiblesAhead(this.lastSpawnX + 5000)
+    }
+
+    // Cleanup behind camera (every 1000 units of progress)
+    if (this.ball.x > this.lastCleanupX + 1000) {
+      this.cleanupBehindCamera()
+      this.lastCleanupX = this.ball.x
+    }
+  }
+
+  private cleanupBehindCamera() {
+    const cleanupX = this.cameras.main.scrollX - 2000  // 2000px buffer behind camera
+
+    // Clean up collectibles
+    this.collectibles = this.collectibles.filter(item => {
+      if (item.x < cleanupX) {
+        item.graphics.destroy()  // Destroy the Container and its children
+        return false  // Remove from array
+      }
+      return true
+    })
+
+    // Clean up distance markers
+    const playerDistance = this.ball.x - this.ballStartX
+    const cleanupDistance = playerDistance - 2000
+
+    for (const [distance, marker] of this.distanceMarkers) {
+      if (distance < cleanupDistance) {
+        marker.destroy()
+        this.distanceMarkers.delete(distance)
+      }
     }
   }
 
@@ -1227,5 +1303,12 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(800, () => {
       this.scene.start('ResultsScene', result)
     })
+  }
+
+  // Clean up input handlers to prevent interference with ResultsScene
+  shutdown() {
+    this.input.off('pointerdown', this.onPointerDown, this)
+    this.input.off('pointermove', this.onPointerMove, this)
+    this.input.off('pointerup', this.onPointerUp, this)
   }
 }
