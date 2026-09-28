@@ -6,17 +6,30 @@ import { initializeSDKMock } from "../.remix/mocks/RemixSDKMock"
 import GameSettings from "./config/GameSettings"
 
 
+// Canvas height: Remix's player frame is taller than the game's 2:3 (about 9:16), so a fixed
+// 720x1080 canvas letterboxed with bands above and below. Keep the WIDTH at 720 (nothing
+// rescales; every scene lays out from the camera size) and grow only the HEIGHT to the frame's
+// aspect, so the extra room is more sky. Never shorter than the original 1080; capped so an
+// extreme frame can't stretch it absurdly. Wider-than-2:3 frames keep 1080 and letterbox as before.
+function canvasHeightForViewport(): number {
+  const { width, height } = GameSettings.canvas
+  const vw = window.innerWidth, vh = window.innerHeight
+  if (!vw || !vh) return height
+  return Math.round(Math.min(Math.max(height, width * (vh / vw)), width * 2.2))
+}
+const CANVAS_HEIGHT = canvasHeightForViewport()
+
 // Game configuration
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
   width: GameSettings.canvas.width,
-  height: GameSettings.canvas.height,
+  height: CANVAS_HEIGHT,
   scale: {
     mode: Phaser.Scale.FIT,
     parent: document.body,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GameSettings.canvas.width,
-    height: GameSettings.canvas.height,
+    height: CANVAS_HEIGHT,
   },
   backgroundColor: "#121212",
   scene: [StartScene, GameScene, ResultsScene],

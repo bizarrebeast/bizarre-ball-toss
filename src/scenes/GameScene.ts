@@ -7,6 +7,7 @@ import {
   getAngleFromDrag,
   TossResult
 } from '../data/BallTossLogic'
+import { PLANT_IMAGE } from '../data/plantImage'
 
 const COLORS = {
   pink: 0xFF10F0,
@@ -152,8 +153,8 @@ export class GameScene extends Phaser.Scene {
     this.load.image('chips', 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/chips-yCT3LzHWcoIydxPWGolox6QtwGTPep.png')
     this.load.image('popcorn', 'https://lqy3lriiybxcejon.public.blob.vercel-storage.com/6b07d2de-8a84-4da4-af76-b3c9b3a626a8/Popped_Popcorn-gTQbm1DhSG3Ljh7YbbujYLjgK6D4kZ.png')
 
-    // Load barrier obstacle
-    this.load.image('plant', 'https://remix.gg/blob/5033c1b9-c892-434b-a00a-71dc5db6016f/plant-in-game-JlftMGw0T8-94WnidhaibgJLF5aKyVpYWV9pA5ozs.webp')
+    // Load barrier obstacle (embedded: see data/plantImage.ts)
+    this.load.image('plant', PLANT_IMAGE)
   }
 
   create() {
