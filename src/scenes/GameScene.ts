@@ -8,6 +8,7 @@ import {
   TossResult
 } from '../data/BallTossLogic'
 import { PLANT_IMAGE } from '../data/plantImage'
+import { hudTopInset } from '../utils/hudSafeArea'
 
 const COLORS = {
   pink: 0xFF10F0,
@@ -663,7 +664,8 @@ export class GameScene extends Phaser.Scene {
   private createHUD() {
     const { width } = this.cameras.main
 
-    this.distanceText = this.add.text(width / 2, 40, '0m', {
+    const top = hudTopInset(this)   // clear of Remix's Back / menu buttons
+    this.distanceText = this.add.text(width / 2, top + 40, '0m', {
       fontFamily: '"Slackey"',
       fontSize: '42px',
       color: '#00D4FF',
@@ -672,7 +674,7 @@ export class GameScene extends Phaser.Scene {
     })
     this.distanceText.setOrigin(0.5)
 
-    this.starsText = this.add.text(width / 2, 88, 'Burgers: 0', {
+    this.starsText = this.add.text(width / 2, top + 88, 'Burgers: 0', {
       fontFamily: '"Inter"',
       fontSize: '18px',
       fontStyle: 'bold',
@@ -681,7 +683,7 @@ export class GameScene extends Phaser.Scene {
     this.starsText.setOrigin(0.5)
 
     // Surf hint (hidden initially)
-    this.surfHint = this.add.text(width / 2, 120, 'HOLD TO DIVE!', {
+    this.surfHint = this.add.text(width / 2, top + 120, 'HOLD TO DIVE!', {
       fontFamily: '"Slackey"',
       fontSize: '22px',
       color: '#39FF14'
